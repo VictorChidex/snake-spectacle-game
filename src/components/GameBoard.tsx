@@ -21,7 +21,7 @@ export function GameBoard({ gameState, cellSize = 20 }: GameBoardProps) {
       
       {/* Food */}
       <div
-        className="absolute rounded-full bg-destructive animate-pulse transition-all duration-100"
+        className="absolute rounded-full bg-destructive animate-pulse"
         style={{
           left: food.x * cellSize + 2,
           top: food.y * cellSize + 2,
@@ -36,7 +36,7 @@ export function GameBoard({ gameState, cellSize = 20 }: GameBoardProps) {
         <div
           key={index}
           className={cn(
-            "absolute rounded-sm transition-all duration-75",
+            "absolute rounded-sm",
             index === 0 ? "bg-primary" : "bg-primary/80"
           )}
           style={{
