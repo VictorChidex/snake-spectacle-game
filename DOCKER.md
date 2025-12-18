@@ -4,15 +4,12 @@ This guide describes the Dockerized environment for the Snake Spectacle Game.
 
 ## Architecture
 
-The application is orchestrated using **Docker Compose** and consists of three main services:
+The application is orchestrated using **Docker Compose** and consists of two main services:
 
-1.  **`frontend`**: A React application built with Vite, served by **Nginx**.
-    - Proxies API requests from `/api` to the backend.
-    - Listens on port **80**.
-2.  **`backend`**: A FastAPI application managed by **uv**.
-    - Handles game logic, authentication, and leaderboard data.
-    - Listens on port **8000**.
-3.  **`db`**: A **PostgreSQL 16** database.
+1.  **`app`**: A unified service containing both the **Backend (FastAPI)** and the **Frontend (React)**.
+    - FastAPI serves the static React assets and handles all API requests.
+    - Listens on port **8000** (mapped to **8080** on the host).
+2.  **`db`**: A **PostgreSQL 16** database.
     - Stores persistent user and leaderboard data.
     - Listens on port **5432** (internal).
 

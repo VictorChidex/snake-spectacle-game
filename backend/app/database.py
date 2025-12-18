@@ -41,7 +41,7 @@ def init_db():
                 {"username": "SnakeMaster", "email": "snake@example.com", "password": "test123", "highScore": 2450, "gamesPlayed": 156},
                 {"username": "RetroGamer", "email": "retro@example.com", "password": "test123", "highScore": 1890, "gamesPlayed": 89},
                 {"username": "PixelKing", "email": "pixel@example.com", "password": "test123", "highScore": 1650, "gamesPlayed": 234},
-                {"username": "ArcadeQueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
+                {"username": "ArcadeQdueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
                 {"username": "NeonNinja", "email": "neon@example.com", "password": "test123", "highScore": 1280, "gamesPlayed": 112},
             ]
             

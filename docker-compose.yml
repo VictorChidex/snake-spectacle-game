@@ -16,11 +16,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend Service
-  backend:
+  # Unified Application Service (Frontend + Backend)
+  app:
     build:
-      context: ./backend
-    container_name: snake-backend
+      context: ./
+      dockerfile: Dockerfile
+    container_name: snake-app
     restart: always
     environment:
       - DATABASE_URL=postgresql://snakeuser:snakepassword@db:5432/snake_game
@@ -29,18 +30,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
-
-  # Frontend Service (Nginx)
-  frontend:
-    build:
-      context: ./frontend
-    container_name: snake-frontend
-    restart: always
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
+      - "8080:8000"
 
 volumes:
   postgres_data:
