@@ -24,6 +24,8 @@ The frontend and backend are now fully connected. Key fixes included:
 - **API Prefixing**: Added the `/api` prefix to all backend routes in `backend/app/main.py` to match the frontend's expected API structure.
 - **CORS Handling**: Verified that CORS is enabled in the backend to allow the frontend to make requests.
 
+For a deep dive into database verification and integration tests, check the [Backend README](file:///workspaces/snake-spectacle-game/backend/README.md).
+
 ### Verification Details
 
 You can verify the integration by:

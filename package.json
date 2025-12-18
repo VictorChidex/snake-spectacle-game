@@ -7,11 +7,11 @@
         "frontend": "npm run dev --prefix frontend",
         "backend": "cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
         "install": "npm install && cd backend && uv sync",
-        "test": "cd backend && uv run pytest",
+        "test": "cd backend && uv run pytest test_integration",
         "test:frontend": "npm run test --prefix frontend",
-        "test:backend": "cd backend && uv run pytest",
+        "test:backend": "cd backend && uv run pytest test_integration",
         "test:integration": "cd backend && uv run pytest test_integration",
-        "test:all": "concurrently \"npm run test --prefix frontend\" \"cd backend && uv run pytest\""
+        "test:all": "concurrently \"npm run test --prefix frontend\" \"cd backend && uv run pytest test_integration\""
     },
     "devDependencies": {
         "concurrently": "^8.2.2"

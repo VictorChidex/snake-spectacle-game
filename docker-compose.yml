@@ -1,24 +1,48 @@
 version: '3.8'
 
 services:
+  # Database Service
+  db:
+    image: postgres:16-alpine
+    container_name: snake-db
+    restart: always
+    environment:
+      POSTGRES_USER: snakeuser
+      POSTGRES_PASSWORD: snakepassword
+      POSTGRES_DB: snake_game
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U snakeuser -d snake_game" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service
   backend:
     build:
       context: ./backend
+    container_name: snake-backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://snakeuser:snakepassword@db:5432/snake_game
+      - SECRET_KEY=your-production-secret-key-change-me
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=sqlite:///./app/database.db
-      # For production, replace with:
-      # - DATABASE_URL=postgresql://user:password@db:5432/snake_db
-    volumes:
-      - ./backend/data:/app/app # Persistent storage for SQLite if needed
 
+  # Frontend Service (Nginx)
   frontend:
     build:
       context: ./frontend
-      args:
-        - VITE_API_URL=http://localhost:8000/api
+    container_name: snake-frontend
+    restart: always
     ports:
       - "80:80"
     depends_on:
       - backend
+
+volumes:
+  postgres_data:
