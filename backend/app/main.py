@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +35,7 @@ app.include_router(games.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 
 @app.get("/api")
+@app.get("/api/")
 async def api_root():
     return {"message": "Welcome to Snake Spectacle Game API"}
 
