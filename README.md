@@ -44,6 +44,8 @@ For production deployment instructions, including Docker and manual setup, pleas
 docker compose up --build -d
 ```
 
+For more details on the architecture and environment variables, see [DOCKER.md](file:///workspaces/snake-spectacle-game/DOCKER.md).
+
 ## Project Structure
 
 - `/frontend`: React + Vite + Tailwind CSS + Shadcn UI
