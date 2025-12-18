@@ -2,11 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, leaderboard, games, users
 
+from app.database import init_db
+
 app = FastAPI(
     title="Snake Spectacle Game API",
     description="API for the Snake Spectacle Game, handling auth, leaderboards, and live game spectating.",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 # CORS (Allow all for development)
 app.add_middleware(

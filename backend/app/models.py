@@ -30,6 +30,8 @@ class User(UserBase):
     gamesPlayed: int
     createdAt: datetime
 
+    model_config = {"from_attributes": True}
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -43,12 +45,16 @@ class AuthResponse(BaseModel):
     user: User
     token: str
 
+    model_config = {"from_attributes": True}
+
 class LeaderboardEntry(BaseModel):
     id: str
     username: str
     score: int
     mode: GameMode
     date: datetime
+
+    model_config = {"from_attributes": True}
 
 class SubmitScoreRequest(BaseModel):
     score: int

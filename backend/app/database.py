@@ -1,52 +1,83 @@
 from datetime import datetime
-from typing import Dict, List, Optional
-from .models import User, LeaderboardEntry, LiveGame, GameMode
+from typing import Generator, List, Optional
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from pydantic_settings import BaseSettings
+import os
 
-# In-memory storage
-users_db: Dict[str, User] = {}
-users_secrets: Dict[str, str] = {} # email -> password mapping (insecure, but fine for mock)
-leaderboard_db: List[LeaderboardEntry] = []
-live_games_db: Dict[str, LiveGame] = [] # Changed to List or Dict? OpenAPI says get returns list. Let's keep it as list or dict. 
-# Re-reading: liveGamesApi.getLiveGames returns LiveGame[].
+from .models import GameMode, Point, Direction, LiveGame, User as PydanticUser, LeaderboardEntry as PydanticLeaderboard
+from .db_models import Base, DBUser, DBLeaderboard
+
+class Settings(BaseSettings):
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./snake_game.db")
+
+settings = Settings()
+
+# SQLAlchemy Setup
+connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# In-memory storage for Live Games (highly dynamic)
 live_games_db: List[LiveGame] = []
 
-# Helper to populate initial data
-def init_db():
-    # Only if empty
-    if not users_db:
-        # Create some mock users
-        mock_users = [
-            {"id": "1", "username": "SnakeMaster", "email": "snake@example.com", "password": "test123", "highScore": 2450, "gamesPlayed": 156},
-            {"id": "2", "username": "RetroGamer", "email": "retro@example.com", "password": "test123", "highScore": 1890, "gamesPlayed": 89},
-            {"id": "3", "username": "PixelKing", "email": "pixel@example.com", "password": "test123", "highScore": 1650, "gamesPlayed": 234},
-            {"id": "4", "username": "ArcadeQueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
-            {"id": "5", "username": "NeonNinja", "email": "neon@example.com", "password": "test123", "highScore": 1280, "gamesPlayed": 112},
-        ]
-        
-        for u in mock_users:
-            users_secrets[u["email"]] = u["password"]
-            users_db[u["email"]] = User(
-                id=u["id"],
-                username=u["username"],
-                email=u["email"],
-                highScore=u["highScore"],
-                gamesPlayed=u["gamesPlayed"],
-                createdAt=datetime.now()
-            )
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-    if not leaderboard_db:
-        # Mock leaderboard
-        leaderboard_db.extend([
-            LeaderboardEntry(id="1", username="SnakeMaster", score=2450, mode=GameMode.walls, date=datetime.now()),
-            LeaderboardEntry(id="2", username="RetroGamer", score=1890, mode=GameMode.pass_through, date=datetime.now()),
-            LeaderboardEntry(id="3", username="PixelKing", score=1650, mode=GameMode.walls, date=datetime.now()),
-            LeaderboardEntry(id="4", username="ArcadeQueen", score=1420, mode=GameMode.pass_through, date=datetime.now()),
-            LeaderboardEntry(id="5", username="NeonNinja", score=1280, mode=GameMode.walls, date=datetime.now()),
-        ])
+def init_db():
+    # Create tables
+    Base.metadata.create_all(bind=engine)
     
+    db = SessionLocal()
+    try:
+        # Check if users already exist
+        if db.query(DBUser).count() == 0:
+            # Create some mock users
+            mock_users = [
+                {"username": "SnakeMaster", "email": "snake@example.com", "password": "test123", "highScore": 2450, "gamesPlayed": 156},
+                {"username": "RetroGamer", "email": "retro@example.com", "password": "test123", "highScore": 1890, "gamesPlayed": 89},
+                {"username": "PixelKing", "email": "pixel@example.com", "password": "test123", "highScore": 1650, "gamesPlayed": 234},
+                {"username": "ArcadeQueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
+                {"username": "NeonNinja", "email": "neon@example.com", "password": "test123", "highScore": 1280, "gamesPlayed": 112},
+            ]
+            
+            for u in mock_users:
+                db_user = DBUser(
+                    username=u["username"],
+                    email=u["email"],
+                    password=u["password"],
+                    highScore=u["highScore"],
+                    gamesPlayed=u["gamesPlayed"],
+                    createdAt=datetime.now()
+                )
+                db.add(db_user)
+            db.commit()
+
+            # Seed leaderboard after users exist
+            if db.query(DBLeaderboard).count() == 0:
+                snakemaster = db.query(DBUser).filter(DBUser.username == "SnakeMaster").first()
+                retrogamer = db.query(DBUser).filter(DBUser.username == "RetroGamer").first()
+                pixelking = db.query(DBUser).filter(DBUser.username == "PixelKing").first()
+                arcadequeen = db.query(DBUser).filter(DBUser.username == "ArcadeQueen").first()
+                neonninja = db.query(DBUser).filter(DBUser.username == "NeonNinja").first()
+
+                db.add_all([
+                    DBLeaderboard(userId=snakemaster.id, username=snakemaster.username, score=2450, mode="walls", date=datetime.now()),
+                    DBLeaderboard(userId=retrogamer.id, username=retrogamer.username, score=1890, mode="pass-through", date=datetime.now()),
+                    DBLeaderboard(userId=pixelking.id, username=pixelking.username, score=1650, mode="walls", date=datetime.now()),
+                    DBLeaderboard(userId=arcadequeen.id, username=arcadequeen.username, score=1420, mode="pass-through", date=datetime.now()),
+                    DBLeaderboard(userId=neonninja.id, username=neonninja.username, score=1280, mode="walls", date=datetime.now()),
+                ])
+                db.commit()
+    finally:
+        db.close()
+
+    # Initial mock live games (kept in-memory)
     if not live_games_db:
-        # Mock live games
-        from .models import Point, Direction
         live_games_db.extend([
              LiveGame(
                 id="1", playerId="2", playerName="RetroGamer", score=340, mode=GameMode.walls, 
@@ -58,4 +89,3 @@ def init_db():
             )
         ])
 
-init_db()

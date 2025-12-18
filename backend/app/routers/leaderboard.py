@@ -1,22 +1,27 @@
 from fastapi import APIRouter, Depends
 from typing import List, Annotated, Optional
 from datetime import datetime
-from app.models import LeaderboardEntry, SubmitScoreRequest, SubmitScoreResponse, GameMode, User, LeaderboardEntry
-from app.database import leaderboard_db, users_db
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from app.models import LeaderboardEntry, SubmitScoreRequest, SubmitScoreResponse, GameMode, User
+from app.database import get_db
+from app.db_models import DBLeaderboard, DBUser
 from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
 
 @router.get("", response_model=List[LeaderboardEntry])
-async def get_leaderboard(mode: Optional[GameMode] = None):
+async def get_leaderboard(mode: Optional[GameMode] = None, db: Session = Depends(get_db)):
+    query = db.query(DBLeaderboard)
     if mode:
-        return [entry for entry in leaderboard_db if entry.mode == mode]
-    return leaderboard_db
+        query = query.filter(DBLeaderboard.mode == mode)
+    return query.order_by(DBLeaderboard.score.desc()).all()
 
 @router.post("", response_model=SubmitScoreResponse)
 async def submit_score(
     request: SubmitScoreRequest, 
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[DBUser, Depends(get_current_user)],
+    db: Session = Depends(get_db)
 ):
     # Update user stats
     current_user.gamesPlayed += 1
@@ -24,22 +29,23 @@ async def submit_score(
         current_user.highScore = request.score
     
     # Add new entry
-    new_entry = LeaderboardEntry(
-        id=str(datetime.now().timestamp()),
+    new_entry = DBLeaderboard(
+        userId=current_user.id,
         username=current_user.username,
         score=request.score,
         mode=request.mode,
         date=datetime.now()
     )
-    leaderboard_db.append(new_entry)
+    db.add(new_entry)
+    db.add(current_user) # Ensure user is updated
+    db.commit()
+    db.refresh(new_entry)
     
-    # Sort leaderboard
-    leaderboard_db.sort(key=lambda x: x.score, reverse=True)
-    
-    # Calculate rank
-    # Note: This is an overall rank, usually leaderboards are per mode. 
-    # But mock implementation was simple list. Let's filter by mode for rank.
-    mode_entries = [e for e in leaderboard_db if e.mode == request.mode]
-    rank = next((i for i, e in enumerate(mode_entries) if e.id == new_entry.id), -1) + 1
+    # Calculate rank for this score in this mode
+    # A simple way is to count how many scores in this mode are higher than this one
+    rank = db.query(DBLeaderboard).filter(
+        DBLeaderboard.mode == request.mode,
+        DBLeaderboard.score > request.score
+    ).count() + 1
     
     return SubmitScoreResponse(success=True, rank=rank)
