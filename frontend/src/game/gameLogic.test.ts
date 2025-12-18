@@ -209,8 +209,8 @@ describe('gameLogic', () => {
           { x: 4, y: 5 },
         ],
         status: 'playing',
-        direction: 'LEFT',
-        nextDirection: 'LEFT',
+        direction: 'DOWN',
+        nextDirection: 'DOWN',
       };
       const newState = moveSnake(state);
       expect(newState.status).toBe('gameOver');

@@ -1,0 +1,378 @@
+openapi: 3.0.0
+info:
+  title: Snake Spectacle Game API
+  version: 1.0.0
+  description: API for the Snake Spectacle Game, handling auth, leaderboards, and live game spectating.
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        highScore:
+          type: integer
+        gamesPlayed:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - username
+        - email
+        - highScore
+        - gamesPlayed
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: JWT or session token
+      required:
+        - user
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    SignupRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - username
+        - email
+        - password
+
+    GameMode:
+      type: string
+      enum: [walls, pass-through]
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        score:
+          type: integer
+        mode:
+          $ref: '#/components/schemas/GameMode'
+        date:
+          type: string
+          format: date-time
+      required:
+        - id
+        - username
+        - score
+        - mode
+        - date
+
+    SubmitScoreRequest:
+      type: object
+      properties:
+        score:
+          type: integer
+        mode:
+          $ref: '#/components/schemas/GameMode'
+      required:
+        - score
+        - mode
+
+    SubmitScoreResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        rank:
+          type: integer
+      required:
+        - success
+        - rank
+
+    Point:
+      type: object
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+      required:
+        - x
+        - y
+
+    Direction:
+      type: string
+      enum: [UP, DOWN, LEFT, RIGHT]
+
+    LiveGame:
+      type: object
+      properties:
+        id:
+          type: string
+        playerId:
+          type: string
+        playerName:
+          type: string
+        score:
+          type: integer
+        mode:
+          $ref: '#/components/schemas/GameMode'
+        startedAt:
+          type: string
+          format: date-time
+        snake:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+        food:
+          $ref: '#/components/schemas/Point'
+        direction:
+          $ref: '#/components/schemas/Direction'
+      required:
+        - id
+        - playerId
+        - playerName
+        - score
+        - mode
+        - startedAt
+        - snake
+        - food
+        - direction
+
+    UserStats:
+      type: object
+      properties:
+        highScore:
+          type: integer
+        gamesPlayed:
+          type: integer
+        rank:
+          type: integer
+      required:
+        - highScore
+        - gamesPlayed
+        - rank
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    post:
+      summary: Login user
+      operationId: login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/signup:
+    post:
+      summary: Register new user
+      operationId: signup
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email or username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      operationId: logout
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful logout
+
+  /auth/me:
+    get:
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+
+  /leaderboard:
+    get:
+      summary: Get leaderboard entries
+      operationId: getLeaderboard
+      tags: [Leaderboard]
+      parameters:
+        - in: query
+          name: mode
+          schema:
+            $ref: '#/components/schemas/GameMode'
+          description: Filter by game mode
+      responses:
+        '200':
+          description: List of leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaderboardEntry'
+
+    post:
+      summary: Submit a new score
+      operationId: submitScore
+      tags: [Leaderboard]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitScoreRequest'
+      responses:
+        '200':
+          description: Score submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitScoreResponse'
+        '401':
+          description: Not authenticated
+
+  /games:
+    get:
+      summary: Get active live games
+      operationId: getLiveGames
+      tags: [LiveGames]
+      responses:
+        '200':
+          description: List of active games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LiveGame'
+
+  /games/{id}:
+    get:
+      summary: Get a specific live game details
+      operationId: getGameById
+      tags: [LiveGames]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveGame'
+        '404':
+          description: Game not found
+
+  /users/{userId}/stats:
+    get:
+      summary: Get user statistics (high score, rank)
+      operationId: getUserStats
+      tags: [Users]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStats'
+        '404':
+          description: User not found
