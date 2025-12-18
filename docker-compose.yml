@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./app/database.db
+      # For production, replace with:
+      # - DATABASE_URL=postgresql://user:password@db:5432/snake_db
+    volumes:
+      - ./backend/data:/app/app # Persistent storage for SQLite if needed
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:8000/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

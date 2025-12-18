@@ -33,7 +33,16 @@ You can verify the integration by:
    - **Password**: `test123`
 3. After logging in, check the **Dashboard** to see your stats (High Score, Games Played) fetched from the backend.
 
-### Project Structure
+## Deployment
+
+For production deployment instructions, including Docker and manual setup, please see [DEPLOYMENT.md](file:///workspaces/snake-spectacle-game/DEPLOYMENT.md).
+
+### Quick Docker Start:
+```bash
+docker compose up --build -d
+```
+
+## Project Structure
 
 - `/frontend`: React + Vite + Tailwind CSS + Shadcn UI
 - `/backend`: FastAPI + Pydantic + JWT
