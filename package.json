@@ -1,0 +1,18 @@
+{
+    "name": "snake-spectacle-game",
+    "private": true,
+    "version": "0.1.0",
+    "scripts": {
+        "dev": "concurrently \"npm run dev --prefix frontend\" \"cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000\"",
+        "frontend": "npm run dev --prefix frontend",
+        "backend": "cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+        "install": "npm install && cd backend && uv sync",
+        "test": "uv run pytest",
+        "test:frontend": "npm run test --prefix frontend",
+        "test:backend": "uv run pytest",
+        "test:all": "concurrently \"npm run test --prefix frontend\" \"uv run pytest\""
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

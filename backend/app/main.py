@@ -17,10 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(leaderboard.router)
-app.include_router(games.router)
-app.include_router(users.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(leaderboard.router, prefix="/api")
+app.include_router(games.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 
 @app.get("/")
 async def root():
