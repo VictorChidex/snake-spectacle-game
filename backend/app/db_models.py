@@ -21,7 +21,7 @@ class DBUser(Base):
     createdAt = Column(DateTime, default=datetime.utcnow)
 
     # Relationship to leaderboard entries (optional, but good practice)
-    scores = relationship("DBLeaderboard", back_populates="user")
+    scores = relationship("DBLeaderboard", back_populates="user", cascade="all, delete-orphan")
 
 class DBLeaderboard(Base):
     __tablename__ = "leaderboard"

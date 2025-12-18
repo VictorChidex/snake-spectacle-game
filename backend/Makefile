@@ -19,9 +19,9 @@ run:
 # Alias for dev (kept for compatibility)
 dev: run
 
-# Run backend tests
-test-backend:
-	uv run pytest
+# Run tests
+test:
+	uv run pytest test_integration
 
 # Run frontend tests
 test-frontend:
