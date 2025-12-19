@@ -64,7 +64,7 @@ def init_db():
                 {"username": "SnakeMaster", "email": "snake@example.com", "password": "test123", "highScore": 2450, "gamesPlayed": 156},
                 {"username": "RetroGamer", "email": "retro@example.com", "password": "test123", "highScore": 1890, "gamesPlayed": 89},
                 {"username": "PixelKing", "email": "pixel@example.com", "password": "test123", "highScore": 1650, "gamesPlayed": 234},
-                {"username": "ArcadeQdueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
+                {"username": "ArcadeQueen", "email": "arcade@example.com", "password": "test123", "highScore": 1420, "gamesPlayed": 67},
                 {"username": "NeonNinja", "email": "neon@example.com", "password": "test123", "highScore": 1280, "gamesPlayed": 112},
             ]
             
@@ -82,20 +82,28 @@ def init_db():
 
             # Seed leaderboard after users exist
             if db.query(DBLeaderboard).count() == 0:
-                snakemaster = db.query(DBUser).filter(DBUser.username == "SnakeMaster").first()
-                retrogamer = db.query(DBUser).filter(DBUser.username == "RetroGamer").first()
-                pixelking = db.query(DBUser).filter(DBUser.username == "PixelKing").first()
-                arcadequeen = db.query(DBUser).filter(DBUser.username == "ArcadeQueen").first()
-                neonninja = db.query(DBUser).filter(DBUser.username == "NeonNinja").first()
+                # Prepare leaderboard entries safely
+                leaderboard_data = []
+                entries = [
+                    ("SnakeMaster", 2450, "walls"),
+                    ("RetroGamer", 1890, "pass-through"),
+                    ("PixelKing", 1650, "walls"),
+                    ("ArcadeQueen", 1420, "pass-through"),
+                    ("NeonNinja", 1280, "walls"),
+                ]
 
-                db.add_all([
-                    DBLeaderboard(userId=snakemaster.id, username=snakemaster.username, score=2450, mode="walls", date=datetime.now()),
-                    DBLeaderboard(userId=retrogamer.id, username=retrogamer.username, score=1890, mode="pass-through", date=datetime.now()),
-                    DBLeaderboard(userId=pixelking.id, username=pixelking.username, score=1650, mode="walls", date=datetime.now()),
-                    DBLeaderboard(userId=arcadequeen.id, username=arcadequeen.username, score=1420, mode="pass-through", date=datetime.now()),
-                    DBLeaderboard(userId=neonninja.id, username=neonninja.username, score=1280, mode="walls", date=datetime.now()),
-                ])
-                db.commit()
+                for username, score, mode in entries:
+                    user = db.query(DBUser).filter(DBUser.username == username).first()
+                    if user:
+                        leaderboard_data.append(
+                            DBLeaderboard(userId=user.id, username=user.username, score=score, mode=mode, date=datetime.now())
+                        )
+                    else:
+                        print(f"Warning: Could not find user {username} for leaderboard seeding.")
+
+                if leaderboard_data:
+                    db.add_all(leaderboard_data)
+                    db.commit()
     finally:
         db.close()
 
