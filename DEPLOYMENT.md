@@ -2,6 +2,20 @@
 
 This guide describes how to deploy the Snake Spectacle Game for production.
 
+---
+
+## 🚀 One-Click Deploy to Render
+
+The fastest way to get your game online is using a Render Blueprint. This will automatically set up your Web Service and a PostgreSQL database.
+
+1.  **Fork this repository** to your own GitHub account.
+2.  Go to the [Render Dashboard](https://dashboard.render.com).
+3.  Click **New +** and select **Blueprint**.
+4.  Connect your forked repository.
+5.  Render will automatically detect the `render.yaml` file and prompt you to deploy.
+
+---
+
 ## 1. Docker Deployment (Recommended)
 
 The easiest way to deploy the full stack (Frontend, Backend, and PostgreSQL) is using Docker Compose.
