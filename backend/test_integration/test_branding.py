@@ -10,11 +10,11 @@ def test_frontend_branding():
     with open(index_html_path, "r") as f:
         content = f.read()
         
-    # Check for Lovable branding
-    assert "Lovable App" in content
-    assert "Lovable" in content
+    # Check for Snake Spectacle Game branding
+    assert "Snake Spectacle Game" in content
     
-    # Ensure no traces of VictorGenius remain
+    # Ensure no traces of placeholders remain
+    assert "Lovable App" not in content
     assert "VictorGenius" not in content
 
 def test_backend_branding_info():
