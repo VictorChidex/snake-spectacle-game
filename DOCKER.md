@@ -21,7 +21,9 @@ To build and start the entire stack:
 docker compose up --build -d
 ```
 
-Access the game at: **`http://localhost`**
+Access Points:
+   - Frontend: `http://localhost:8080` (Served by the unified app)
+   - Backend API: `http://localhost:8080/api`
 
 ## Environment Variables
 

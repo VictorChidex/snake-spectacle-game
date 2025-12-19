@@ -26,8 +26,8 @@ The easiest way to deploy the full stack (Frontend, Backend, and PostgreSQL) is 
    docker compose up --build -d
    ```
 2. **Access the App**:
-   - Frontend: `http://localhost` (Served by Nginx on port 80)
-   - Backend API: `http://localhost:8000/api` (Proxied by Nginx or accessed directly)
+   - Frontend: `http://localhost:8080` (Served by the unified app)
+   - Backend API: `http://localhost:8080/api`
    - Database: PostgreSQL running on port 5432 (Internal to Docker network)
 
 ### Configuration:
