@@ -10,12 +10,19 @@ from .db_models import Base, DBUser, DBLeaderboard
 
 class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./snake_game.db")
+    
+    @property
+    def sqlalchemy_database_url(self) -> str:
+        # Render provides postgres:// but SQLAlchemy 1.4+ requires postgresql://
+        if self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        return self.DATABASE_URL
 
 settings = Settings()
 
 # SQLAlchemy Setup
-connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+connect_args = {"check_same_thread": False} if settings.sqlalchemy_database_url.startswith("sqlite") else {}
+engine = create_engine(settings.sqlalchemy_database_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # In-memory storage for Live Games (highly dynamic)
@@ -29,8 +36,24 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 def init_db():
-    # Create tables
-    Base.metadata.create_all(bind=engine)
+    import time
+    from sqlalchemy.exc import OperationalError
+    
+    # Simple retry logic for database connection (useful for Render/Docker startup)
+    max_retries = 5
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            # Create tables
+            Base.metadata.create_all(bind=engine)
+            break
+        except OperationalError as e:
+            if attempt == max_retries - 1:
+                print(f"Failed to connect to database after {max_retries} attempts.")
+                raise e
+            print(f"Database connection attempt {attempt + 1} failed. Retrying in {retry_delay}s...")
+            time.sleep(retry_delay)
     
     db = SessionLocal()
     try:
