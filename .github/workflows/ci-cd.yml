@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Run Tests
+  backend-test:
+    name: Backend Tests
     runs-on: ubuntu-latest
 
     services:
@@ -29,7 +29,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # --- Backend Setup & Test ---
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -51,7 +50,13 @@ jobs:
         cd backend
         uv run pytest test_integration
 
-    # --- Frontend Setup & Test ---
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
@@ -71,7 +76,7 @@ jobs:
 
   deploy:
     name: Deploy to Render
-    needs: test
+    needs: [backend-test, frontend-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
