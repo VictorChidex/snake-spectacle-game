@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.database import get_db, Base
+# Explicitly import models to ensure valid registry in Base.metadata
+from app.db_models import DBUser, DBLeaderboard
 
 # Use a separate database for integration tests (Postgres in CI, local SQLite)
 TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test_integration.db")
@@ -18,6 +20,11 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
+    # Debug: Print DB URL (masking password) and tables to be created
+    safe_url = TEST_DATABASE_URL.split("@")[-1] if "@" in TEST_DATABASE_URL else TEST_DATABASE_URL
+    print(f"\n[SETUP] Using Database: ...@{safe_url}")
+    print(f"[SETUP] Creating tables: {Base.metadata.tables.keys()}")
+    
     # Create the tables
     Base.metadata.create_all(bind=engine)
     yield
