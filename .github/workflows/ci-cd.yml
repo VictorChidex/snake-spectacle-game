@@ -49,6 +49,7 @@ jobs:
       run: |
         cd backend
         uv run pytest test_integration
+        uv run python verify_backend.py
 
   frontend-test:
     name: Frontend Tests
