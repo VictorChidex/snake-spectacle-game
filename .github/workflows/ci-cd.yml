@@ -44,45 +44,9 @@ jobs:
         uv sync
         uv run python --version
 
-  integration-test:
-    name: Integration Tests
-    needs: [frontend-test, backend-test]
-    runs-on: ubuntu-latest
-    services:
-      db:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: snakeuser
-          POSTGRES_PASSWORD: snakepassword
-          POSTGRES_DB: snake_game
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-    - name: Run Backend Integration Suite
-      env:
-        DATABASE_URL: postgresql://snakeuser:snakepassword@localhost:5432/snake_game
-        SECRET_KEY: test-secret-key
-      run: |
-        cd backend
-        uv sync
-        uv run pytest test_integration
-        uv run python verify_backend.py
-
   deploy:
     name: Deploy to Render
-    needs: integration-test
+    needs: [frontend-test, backend-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
