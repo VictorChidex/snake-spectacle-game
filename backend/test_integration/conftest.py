@@ -6,8 +6,8 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.database import get_db, Base
 
-# Use a separate SQLite database for integration tests
-TEST_DATABASE_URL = "sqlite:///./test_integration.db"
+# Use a separate database for integration tests (Postgres in CI, local SQLite)
+TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test_integration.db")
 
 engine = create_engine(
     TEST_DATABASE_URL, connect_args={"check_same_thread": False}

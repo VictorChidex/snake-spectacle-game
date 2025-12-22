@@ -14,7 +14,7 @@ def run_verification():
     username = "NewPlayer"
     
     # Try signup
-    response = client.post("/auth/signup", json={
+    response = client.post("/api/auth/signup", json={
         "username": username,
         "email": email,
         "password": password
@@ -22,7 +22,7 @@ def run_verification():
     
     if response.status_code == 409:
         print("User already exists, logging in instead.")
-        response = client.post("/auth/login", json={
+        response = client.post("/api/auth/login", json={
             "email": email,
             "password": password
         })
@@ -40,7 +40,7 @@ def run_verification():
     
     # 2. Get Me
     print("\n[2] Testing Get Me...")
-    response = client.get("/auth/me", headers=headers)
+    response = client.get("/api/auth/me", headers=headers)
     assert response.status_code == 200
     print(f"Current user profile: {response.json()}")
     
@@ -50,13 +50,13 @@ def run_verification():
         "score": 500,
         "mode": "walls"
     }
-    response = client.post("/leaderboard", json=score_data, headers=headers)
+    response = client.post("/api/leaderboard", json=score_data, headers=headers)
     assert response.status_code == 200
     print(f"Score submitted: {response.json()}")
     
     # 4. Get Leaderboard
     print("\n[4] Testing Leaderboard...")
-    response = client.get("/leaderboard")
+    response = client.get("/api/leaderboard")
     assert response.status_code == 200
     leaderboard = response.json()
     print(f"Leaderboard entries: {len(leaderboard)}")
@@ -64,7 +64,7 @@ def run_verification():
     
     # 5. Get Live Games
     print("\n[5] Testing Live Games...")
-    response = client.get("/games")
+    response = client.get("/api/games")
     assert response.status_code == 200
     games = response.json()
     print(f"Live games count: {len(games)}")
@@ -73,7 +73,7 @@ def run_verification():
         
     # 6. Get User Stats
     print("\n[6] Testing User Stats...")
-    response = client.get(f"/users/{user['id']}/stats")
+    response = client.get(f"/api/users/{user['id']}/stats")
     if response.status_code == 200:
         print(f"User Stats: {response.json()}")
     else:
