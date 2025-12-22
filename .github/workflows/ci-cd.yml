@@ -46,6 +46,7 @@ jobs:
 
   integration-test:
     name: Integration Tests
+    needs: [frontend-test, backend-test]
     runs-on: ubuntu-latest
     services:
       db:
@@ -81,7 +82,7 @@ jobs:
 
   deploy:
     name: Deploy to Render
-    needs: [frontend-test, backend-test, integration-test]
+    needs: integration-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
